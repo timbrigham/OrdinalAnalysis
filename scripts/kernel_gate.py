@@ -13,22 +13,53 @@ The binaries are taken from the environment:
     NANODA        path to nanoda_bin
 
 Each group in the config names a module, the declarations to export, the axioms
-nanoda may admit, and the expected outcome.  A group with "expect": "fail" is a
-control: it must be rejected, which shows the gate can fail.  The gate fails closed:
-a group passes only on exit code 0 together with nanoda's own success line, and any
-outcome other than the expected one fails the run.
+nanoda may admit, and the expected outcome: "pass", "fail" (nanoda rejects the
+export) or "error" (the export itself is refused).  A "fail" or "error" group is a
+control that shows the gate can fail.  The gate fails closed: an export is refused
+if lean4export writes anything to stderr or if any requested declaration is absent
+from it (lean4export exits 0 on an unknown name, leaving an empty export that nanoda
+would pass), and a group passes only on nanoda exit code 0 together with its success
+line reporting a non-zero number of declarations.  Any outcome other than the
+expected one fails the run.
 
 Exit code 0 = every group met its expectation, 1 = otherwise.
 """
 
 import json
 import os
+import re
 import subprocess
 import sys
 import time
 from pathlib import Path
 
 SUCCESS_MARK = "with no typechecker errors"
+NON_DECLARATION_KEYS = {"meta", "in", "il", "ie"}
+
+
+def exported_names(export_path):
+    """The names of the declarations in an NDJSON export, resolved through its name table."""
+    parts, decl_ids = {0: None}, []
+    with open(export_path, encoding="utf-8") as fh:
+        for line in fh:
+            obj = json.loads(line)
+            if "in" in obj:
+                body = obj.get("str") or obj.get("num")
+                parts[obj["in"]] = (body["pre"], str(body.get("str", body.get("i"))))
+            elif not NON_DECLARATION_KEYS & obj.keys():
+                for value in obj.values():
+                    if isinstance(value, dict) and isinstance(value.get("name"), int):
+                        decl_ids.append(value["name"])
+
+    def resolve(i):
+        out = []
+        while parts.get(i) is not None:
+            pre, s = parts[i]
+            out.append(s)
+            i = pre
+        return ".".join(reversed(out))
+
+    return {resolve(i) for i in decl_ids}
 
 
 def run_group(group, lean4export, nanoda, out_dir):
@@ -40,9 +71,17 @@ def run_group(group, lean4export, nanoda, out_dir):
             ["lake", "env", lean4export, group["module"], "--", *group["declarations"]],
             stdout=fh, stderr=subprocess.PIPE)
     t_export = time.monotonic() - t0
-    if exp.returncode != 0:
+    err = exp.stderr.decode(errors="replace").strip()
+    # lean4export exits 0 even when a requested name is missing ("PANIC ... not found in
+    # environment"), leaving a header-only export that nanoda then passes.  Any stderr
+    # output, or a requested name absent from the export, is therefore an error.
+    if exp.returncode != 0 or err:
         return {"name": name, "outcome": "error",
-                "detail": "lean4export failed: " + exp.stderr.decode(errors="replace")[-2000:]}
+                "detail": f"lean4export exit {exp.returncode}: {err[-2000:]}"}
+    missing = sorted(set(group["declarations"]) - exported_names(export_path))
+    if missing:
+        return {"name": name, "outcome": "error",
+                "detail": "requested declarations not in the export: " + ", ".join(missing)}
 
     config = {
         "export_file_path": export_path.resolve().as_posix(),
@@ -61,9 +100,11 @@ def run_group(group, lean4export, nanoda, out_dir):
                          stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     t_check = time.monotonic() - t1
     log = chk.stdout.decode(errors="replace")
-    passed = chk.returncode == 0 and SUCCESS_MARK in log
-    outcome = "pass" if passed else "fail"
     summary = next((ln for ln in log.splitlines() if ln.startswith("Checked")), "")
+    checked = re.match(r"Checked (\d+) declarations", summary)
+    passed = (chk.returncode == 0 and SUCCESS_MARK in log
+              and checked is not None and int(checked.group(1)) > 0)
+    outcome = "pass" if passed else "fail"
     if not passed:
         lines = [ln.strip() for ln in log.splitlines() if ln.strip()]
         cause = [ln for ln in lines if "panicked" in ln or "rror" in ln or "not found" in ln]

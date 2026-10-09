@@ -3,7 +3,11 @@
     {
       "name": "headline",
       "module": "OrdinalAnalysis",
-      "permitted_axioms": ["propext", "Classical.choice", "Quot.sound"],
+      "permitted_axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound"
+      ],
       "expect": "pass",
       "declarations": [
         "OrdinalAnalysis.Gentzen.gentzen_theorem",
@@ -23,7 +27,11 @@
     {
       "name": "theta-epsilon-zero",
       "module": "OrdinalAnalysis",
-      "permitted_axioms": ["propext", "Classical.choice", "Quot.sound"],
+      "permitted_axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound"
+      ],
       "expect": "pass",
       "declarations": [
         "OrdinalAnalysis.ThetaWNoteD.isLeast_epsilonZero",
@@ -33,10 +41,26 @@
     {
       "name": "control-choice-forbidden",
       "module": "OrdinalAnalysis",
-      "permitted_axioms": ["propext", "Quot.sound"],
+      "permitted_axioms": [
+        "propext",
+        "Quot.sound"
+      ],
       "expect": "fail",
       "declarations": [
         "OrdinalAnalysis.ThetaWNoteD.isLeast_epsilonZero"
+      ]
+    },
+    {
+      "name": "control-misspelled-name",
+      "module": "OrdinalAnalysis",
+      "permitted_axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound"
+      ],
+      "expect": "error",
+      "declarations": [
+        "OrdinalAnalysis.ThetaWNoteD.isLeast_epsilonZero_misspelled"
       ]
     }
   ]
