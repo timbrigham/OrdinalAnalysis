@@ -1477,6 +1477,12 @@ info: 'OrdinalAnalysis.InductiveDef.UpperBound.tiUptoSentence_Omega' depends on 
 /-- info: 'OrdinalAnalysis.ThetaWNoteD.wellFoundedLT' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in #print axioms OrdinalAnalysis.ThetaWNoteD.wellFoundedLT
 
+/-- info: 'OrdinalAnalysis.ThetaWNoteD.isLeast_epsilonZero' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in #print axioms OrdinalAnalysis.ThetaWNoteD.isLeast_epsilonZero
+
+/-- info: 'OrdinalAnalysis.ThetaWNoteD.lt_epsilonZero_iff' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in #print axioms OrdinalAnalysis.ThetaWNoteD.lt_epsilonZero_iff
+
 /-- info: 'OrdinalAnalysis.ThetaWNoteD.dom_add' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in #print axioms OrdinalAnalysis.ThetaWNoteD.dom_add
 

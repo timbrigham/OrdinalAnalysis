@@ -361,6 +361,7 @@ import OrdinalAnalysis.IDn.AxiomsIDCases.xFreeI_predOf
 import OrdinalAnalysis.IDn.CollapseCorollary
 import OrdinalAnalysis.IDn.EmbedHypsReplace
 import OrdinalAnalysis.Ordinal.ThetaW.TowerCofinal
+import OrdinalAnalysis.Ordinal.ThetaW.EpsilonZero
 import OrdinalAnalysis.IDn.LowerSharp
 import OrdinalAnalysis.IDn.AxiomsIDCases.plugI_subst_numI
 import OrdinalAnalysis.IDn.TautAdditive
