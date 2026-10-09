@@ -22,7 +22,8 @@ jobs:
 
       - name: Toolchain version
         id: tc
-        run: echo "tag=$(cut -d: -f2 lean-toolchain)" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "tag=$(cut -d: -f2 lean-toolchain)" >> "$GITHUB_OUTPUT"
 
       - name: Build the library (Lean's kernel)
         uses: leanprover/lean-action@v1
