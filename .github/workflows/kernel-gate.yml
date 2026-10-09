@@ -1,0 +1,59 @@
+name: kernel gate
+
+# Builds the library, runs the axiom gate, and re-checks the headline theorems with
+# nanoda, an independent implementation of Lean's kernel, from lean4export exports.
+# The groups, their declarations and their permitted axioms are in
+# scripts/kernel_gate.json; a control group that must be rejected shows the gate can fail.
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+env:
+  NANODA_REV: 3a2407216ee84a75f9e1aead6803d0578be06ae7
+
+jobs:
+  kernel-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Toolchain version
+        id: tc
+        run: echo "tag=$(cut -d: -f2 lean-toolchain)" >> "$GITHUB_OUTPUT"
+
+      - name: Build the library (Lean's kernel)
+        uses: leanprover/lean-action@v1
+
+      - name: Axiom gate
+        run: lake env lean scripts/AxiomCheck.lean
+
+      - name: Cache lean4export and nanoda
+        id: tools
+        uses: actions/cache@v4
+        with:
+          path: |
+            tools/lean4export/.lake/build/bin
+            tools/nanoda/target/release/nanoda_bin
+          key: kernel-tools-${{ steps.tc.outputs.tag }}-${{ env.NANODA_REV }}
+
+      - name: Build lean4export at the project's toolchain
+        if: steps.tools.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch "${{ steps.tc.outputs.tag }}" \
+            https://github.com/leanprover/lean4export.git tools/lean4export
+          (cd tools/lean4export && lake build)
+
+      - name: Build nanoda
+        if: steps.tools.outputs.cache-hit != 'true'
+        run: |
+          git clone https://github.com/ammkrn/nanoda_lib.git tools/nanoda
+          (cd tools/nanoda && git checkout "$NANODA_REV" && cargo build --release)
+
+      - name: Independent kernel check
+        env:
+          LEAN4EXPORT: ${{ github.workspace }}/tools/lean4export/.lake/build/bin/lean4export
+          NANODA: ${{ github.workspace }}/tools/nanoda/target/release/nanoda_bin
+        run: python3 scripts/kernel_gate.py scripts/kernel_gate.json

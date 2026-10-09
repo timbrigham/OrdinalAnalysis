@@ -1,0 +1,43 @@
+{
+  "groups": [
+    {
+      "name": "headline",
+      "module": "OrdinalAnalysis",
+      "permitted_axioms": ["propext", "Classical.choice", "Quot.sound"],
+      "expect": "pass",
+      "declarations": [
+        "OrdinalAnalysis.Gentzen.gentzen_theorem",
+        "OrdinalAnalysis.Gentzen.OrderType.gentzen_theorem_with_order_type",
+        "OrdinalAnalysis.Gentzen.epsilon1_theorem",
+        "OrdinalAnalysis.ACA.aca_theorem",
+        "OrdinalAnalysis.Ramified.ramified_theorem",
+        "OrdinalAnalysis.Ramified.ramified_theorem_univ",
+        "OrdinalAnalysis.Ramified.feferman_schutte",
+        "OrdinalAnalysis.Ramified.sf_theorem",
+        "OrdinalAnalysis.InductiveDef.id1_theorem",
+        "OrdinalAnalysis.IDn.idn_analysis",
+        "OrdinalAnalysis.IDn.idlt_analysis",
+        "OrdinalAnalysis.IDw.idw_analysis"
+      ]
+    },
+    {
+      "name": "theta-epsilon-zero",
+      "module": "OrdinalAnalysis",
+      "permitted_axioms": ["propext", "Classical.choice", "Quot.sound"],
+      "expect": "pass",
+      "declarations": [
+        "OrdinalAnalysis.ThetaWNoteD.isLeast_epsilonZero",
+        "OrdinalAnalysis.ThetaWNoteD.lt_epsilonZero_iff"
+      ]
+    },
+    {
+      "name": "control-choice-forbidden",
+      "module": "OrdinalAnalysis",
+      "permitted_axioms": ["propext", "Quot.sound"],
+      "expect": "fail",
+      "declarations": [
+        "OrdinalAnalysis.ThetaWNoteD.isLeast_epsilonZero"
+      ]
+    }
+  ]
+}
